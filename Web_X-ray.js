@@ -1,11 +1,6 @@
-// Add global variable to the window to allow goggles to work on
-// website that have requirejs integrated in
 window.__LOCALIZED_IGNORE_REQUIREJS = true;
 (function(global, ignoreRequireJS, factory) {
-  // AMD. Register as an anonymous module. Also deal with the case
-  // that we've been told to force localized on the global (e.g.,
-  // in cases where require.js might exist in a page and we want to
-  // ignore it and use the global instead).
+  
   if (typeof define === 'function' &&
       define.amd                   &&
       !ignoreRequireJS) {
