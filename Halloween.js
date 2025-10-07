@@ -1,14 +1,5 @@
 (function(){
-    const pile = document.createElement('div');
-    pile.style.position = 'fixed';
-    pile.style.bottom = '0';
-    pile.style.left = '0';
-    pile.style.width = '100%';
-    pile.style.height = '0'; // Invisible container for stacking
-    pile.style.pointerEvents = 'none';
-    pile.style.zIndex = '9999';
-    document.body.appendChild(pile);
-
+    const pile = []; // Keep track of landed candies
     const symbols = ['🎃','🍬','🍭'];
 
     document.addEventListener('click', function(e){
@@ -35,9 +26,19 @@
 
             // Fall animation
             setTimeout(() => {
+                // Compute the landing Y position
                 const candyHeight = candy.offsetHeight;
-                const bottomY = window.innerHeight - candyHeight - 5; // 5px above bottom
+                let bottomY = window.innerHeight - candyHeight - 5; // 5px margin from bottom
+
+                // Stack on top of previous candies
+                if(pile.length > 0){
+                    const last = pile[pile.length - 1];
+                    const lastRect = last.getBoundingClientRect();
+                    bottomY = Math.min(bottomY, lastRect.top - candyHeight);
+                }
+
                 candy.style.top = bottomY + 'px';
+                pile.push(candy); // Add to pile
             }, 10);
 
             // Bounce and roll
@@ -45,17 +46,7 @@
                 candy.style.transform = `translateY(-20px) rotate(${Math.random()*60-30}deg)`;
                 setTimeout(() => {
                     candy.style.transform = 'translateY(0) rotate(0deg)';
-
-                    // Fix position to absolute for stacking
-                    candy.style.position = 'absolute';
-                    candy.style.transition = 'none';
-
-                    // Stack naturally on previous candies
-                    let lastBottom = pile.lastElementChild ? pile.lastElementChild.getBoundingClientRect().top : window.innerHeight - candy.offsetHeight - 5;
-                    candy.style.left = candy.offsetLeft + 'px';
-                    candy.style.top = lastBottom - candy.offsetHeight + 'px';
-
-                    pile.appendChild(candy);
+                    candy.style.transition = 'none'; // freeze animation so it stays
                 }, 300);
             }, 900 + i*50);
         }
