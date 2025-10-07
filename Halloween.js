@@ -1,5 +1,5 @@
 (function(){
-    // Create a pile container at the bottom of the page
+    // Create pile container at the bottom
     const pile = document.createElement('div');
     pile.style.position = 'fixed';
     pile.style.bottom = '0';
@@ -15,56 +15,51 @@
     pile.style.padding = '10px';
     document.body.appendChild(pile);
 
-    // Halloween symbols to use
-    const symbols = ['🎃', '🍬', '🍭'];
+    const symbols = ['🎃','🍬','🍭'];
 
-    // Click handler
     document.addEventListener('click', function(e){
         e.preventDefault();
         e.stopPropagation();
 
         const el = e.target;
-
-        // Get position of the clicked element
         const rect = el.getBoundingClientRect();
 
-        // Remove original element
+        // Remove clicked element
         el.remove();
 
-        // Create a symbol element
-        const candy = document.createElement('div');
-        candy.textContent = symbols[Math.floor(Math.random()*symbols.length)];
-        candy.style.position = 'fixed';
-        candy.style.left = rect.left + 'px';
-        candy.style.top = rect.top + 'px';
-        candy.style.fontSize = '2em';
-        candy.style.transition = 'top 1s cubic-bezier(0.5, 1.5, 0.5, 1) , left 1s ease-in-out';
-        candy.style.zIndex = '9999';
+        // Determine number of symbols based on element size
+        const numSymbols = Math.max(3, Math.floor((rect.width * rect.height) / 5000));
 
-        document.body.appendChild(candy);
+        for(let i=0; i<numSymbols; i++){
+            const candy = document.createElement('div');
+            candy.textContent = symbols[Math.floor(Math.random()*symbols.length)];
+            candy.style.position = 'fixed';
+            candy.style.left = rect.left + rect.width/2 + (Math.random()*30-15) + 'px';
+            candy.style.top = rect.top + 'px';
+            candy.style.fontSize = '2em';
+            candy.style.transition = 'top 0.8s ease-in';
+            candy.style.zIndex = '9999';
+            document.body.appendChild(candy);
 
-        // Animate the candy falling into the pile
-        setTimeout(() => {
-            const pileRect = pile.getBoundingClientRect();
-            const x = pileRect.left + Math.random() * (pileRect.width - 30);
-            const y = pileRect.top + Math.random() * 30;
-            candy.style.left = x + 'px';
-            candy.style.top = y + 'px';
-        }, 10);
-
-        // After animation, attach to pile with a bounce effect
-        setTimeout(() => {
-            candy.style.transition = 'transform 0.3s ease-out';
-            candy.style.transform = 'translateY(-20px)'; // bounce up
+            // Animate falling straight down
             setTimeout(() => {
-                candy.style.transform = 'translateY(0)'; // settle down
-            }, 300);
+                const pileRect = pile.getBoundingClientRect();
+                candy.style.top = pileRect.top - 30 + Math.random()*30 + 'px'; // fall
+            }, 10);
 
-            candy.style.position = 'static';
-            candy.style.margin = '2px';
-            candy.style.transition = 'none';
-            pile.appendChild(candy);
-        }, 1100);
+            // Bounce effect on landing
+            setTimeout(() => {
+                candy.style.transition = 'transform 0.3s ease-out';
+                candy.style.transform = 'translateY(-15px)';
+                setTimeout(() => {
+                    candy.style.transform = 'translateY(0)';
+                }, 300);
 
+                candy.style.position = 'static';
+                candy.style.margin = '2px';
+                candy.style.transition = 'none';
+                pile.appendChild(candy);
+            }, 900);
+        }
     }, true);
 })();
