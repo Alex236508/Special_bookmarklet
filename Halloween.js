@@ -1,8 +1,8 @@
 (function(){
     const symbols = ['🎃','🍬','🍭'];
-    const candies = []; // Track all falling/landed candies
+    const candies = [];
     const gravity = 0.8;
-    const bounceFactor = 0.5;
+    const bounceFactor = 0.3; // small bounce
     const friction = 0.8;
 
     function createCandy(x, y, size=32){
@@ -18,14 +18,17 @@
             el: candy,
             x: x,
             y: y,
-            vx: (Math.random()-0.5)*2, // small horizontal velocity
+            vx: (Math.random()-0.5)*2,
             vy: 0,
-            size: size
+            size: size,
+            resting: false
         };
     }
 
     function animate(){
         candies.forEach(candy => {
+            if(candy.resting) return; // Skip resting candies
+
             candy.vy += gravity;
             candy.y += candy.vy;
             candy.x += candy.vx;
@@ -34,28 +37,34 @@
             const floor = window.innerHeight - candy.size;
             if(candy.y > floor){
                 candy.y = floor;
-                candy.vy *= -bounceFactor;
-                candy.vx *= friction;
-
-                // Small rotation to simulate rolling
-                candy.el.style.transform = `rotate(${Math.random()*40-20}deg)`;
+                if(Math.abs(candy.vy) < 1){ // small enough velocity to rest
+                    candy.vy = 0;
+                    candy.resting = true;
+                } else {
+                    candy.vy *= -bounceFactor;
+                    candy.vx *= friction;
+                }
             }
 
             // Collision with other candies
-            candies.forEach(other => {
-                if(other !== candy){
-                    const dx = (candy.x + candy.size/2) - (other.x + other.size/2);
-                    const dy = (candy.y + candy.size/2) - (other.y + other.size/2);
-                    const dist = Math.sqrt(dx*dx + dy*dy);
-                    if(dist < candy.size){
-                        // Simple push aside
-                        const overlap = candy.size - dist;
-                        const pushX = (dx/dist)*overlap*0.5;
-                        candy.x += pushX;
-                        candy.vx *= 0.9;
+            for(let other of candies){
+                if(other === candy) continue;
+                const dx = (candy.x + candy.size/2) - (other.x + other.size/2);
+                const dy = (candy.y + candy.size/2) - (other.y + other.size/2);
+                const distX = Math.abs(dx);
+                const distY = Math.abs(dy);
+
+                if(distX < candy.size && distY < candy.size){
+                    if(candy.y < other.y){ 
+                        // Candy is above another, stack it
+                        candy.y = other.y - candy.size;
+                        candy.vy = 0;
+                        candy.resting = true;
+                        // Slight roll if dx != 0
+                        candy.vx += dx*0.05;
                     }
                 }
-            });
+            }
 
             candy.el.style.left = candy.x + 'px';
             candy.el.style.top = candy.y + 'px';
