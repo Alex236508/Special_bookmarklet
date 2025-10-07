@@ -38,7 +38,7 @@
         candy.style.left = rect.left + 'px';
         candy.style.top = rect.top + 'px';
         candy.style.fontSize = '2em';
-        candy.style.transition = 'all 1s ease-in';
+        candy.style.transition = 'top 1s cubic-bezier(0.5, 1.5, 0.5, 1) , left 1s ease-in-out';
         candy.style.zIndex = '9999';
 
         document.body.appendChild(candy);
@@ -46,15 +46,20 @@
         // Animate the candy falling into the pile
         setTimeout(() => {
             const pileRect = pile.getBoundingClientRect();
-            // Random x position in pile
             const x = pileRect.left + Math.random() * (pileRect.width - 30);
             const y = pileRect.top + Math.random() * 30;
             candy.style.left = x + 'px';
             candy.style.top = y + 'px';
         }, 10);
 
-        // After animation, attach to pile
+        // After animation, attach to pile with a bounce effect
         setTimeout(() => {
+            candy.style.transition = 'transform 0.3s ease-out';
+            candy.style.transform = 'translateY(-20px)'; // bounce up
+            setTimeout(() => {
+                candy.style.transform = 'translateY(0)'; // settle down
+            }, 300);
+
             candy.style.position = 'static';
             candy.style.margin = '2px';
             candy.style.transition = 'none';
