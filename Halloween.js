@@ -1,5 +1,5 @@
 (function(){
-    // Create pile container at the bottom
+    // Create the pile container at the bottom
     const pile = document.createElement('div');
     pile.style.position = 'fixed';
     pile.style.bottom = '0';
@@ -10,9 +10,9 @@
     pile.style.display = 'flex';
     pile.style.flexWrap = 'wrap';
     pile.style.alignItems = 'flex-end';
-    pile.style.justifyContent = 'center';
+    pile.style.justifyContent = 'flex-start';
     pile.style.zIndex = '9999';
-    pile.style.padding = '10px';
+    pile.style.padding = '5px';
     document.body.appendChild(pile);
 
     const symbols = ['🎃','🍬','🍭'];
@@ -23,43 +23,43 @@
 
         const el = e.target;
         const rect = el.getBoundingClientRect();
+        el.remove(); // Remove clicked element
 
-        // Remove clicked element
-        el.remove();
-
-        // Determine number of symbols based on element size
-        const numSymbols = Math.max(3, Math.floor((rect.width * rect.height) / 5000));
+        // Determine number of symbols based on element area
+        const area = rect.width * rect.height;
+        const numSymbols = Math.max(1, Math.floor(area / 2000)); // Adjust divisor to tweak density
 
         for(let i=0; i<numSymbols; i++){
             const candy = document.createElement('div');
             candy.textContent = symbols[Math.floor(Math.random()*symbols.length)];
             candy.style.position = 'fixed';
-            candy.style.left = rect.left + rect.width/2 + (Math.random()*30-15) + 'px';
+            candy.style.left = rect.left + rect.width/2 + (Math.random()*20-10) + 'px';
             candy.style.top = rect.top + 'px';
             candy.style.fontSize = '2em';
-            candy.style.transition = 'top 0.8s ease-in';
+            candy.style.transition = 'top 0.8s ease-in, transform 0.3s ease-out';
             candy.style.zIndex = '9999';
             document.body.appendChild(candy);
 
-            // Animate falling straight down
+            // Fall straight down
             setTimeout(() => {
                 const pileRect = pile.getBoundingClientRect();
-                candy.style.top = pileRect.top - 30 + Math.random()*30 + 'px'; // fall
+                candy.style.top = pileRect.top - 30 + 'px';
             }, 10);
 
-            // Bounce effect on landing
+            // Bounce and roll
             setTimeout(() => {
-                candy.style.transition = 'transform 0.3s ease-out';
-                candy.style.transform = 'translateY(-15px)';
+                candy.style.transform = `translateY(-15px) rotate(${Math.random()*60-30}deg)`;
                 setTimeout(() => {
-                    candy.style.transform = 'translateY(0)';
-                }, 300);
+                    candy.style.transform = 'translateY(0) rotate(0deg)';
 
-                candy.style.position = 'static';
-                candy.style.margin = '2px';
-                candy.style.transition = 'none';
-                pile.appendChild(candy);
-            }, 900);
+                    // Attach to pile
+                    candy.style.position = 'static';
+                    candy.style.margin = '2px';
+                    candy.style.transition = 'none';
+                    candy.style.transform = 'none';
+                    pile.appendChild(candy);
+                }, 300);
+            }, 900 + i*50); // Slight stagger for realism
         }
     }, true);
 })();
