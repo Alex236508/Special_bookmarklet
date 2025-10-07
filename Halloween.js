@@ -1,54 +1,82 @@
 (function(){
-    const pile = []; // Keep track of landed candies
     const symbols = ['🎃','🍬','🍭'];
+    const candies = []; // Track all falling/landed candies
+    const gravity = 0.8;
+    const bounceFactor = 0.5;
+    const friction = 0.8;
 
-    document.addEventListener('click', function(e){
+    function createCandy(x, y, size=32){
+        const candy = document.createElement('div');
+        candy.textContent = symbols[Math.floor(Math.random()*symbols.length)];
+        candy.style.position = 'fixed';
+        candy.style.left = x + 'px';
+        candy.style.top = y + 'px';
+        candy.style.fontSize = `${size}px`;
+        candy.style.zIndex = 9999;
+        document.body.appendChild(candy);
+        return {
+            el: candy,
+            x: x,
+            y: y,
+            vx: (Math.random()-0.5)*2, // small horizontal velocity
+            vy: 0,
+            size: size
+        };
+    }
+
+    function animate(){
+        candies.forEach(candy => {
+            candy.vy += gravity;
+            candy.y += candy.vy;
+            candy.x += candy.vx;
+
+            // Collision with floor
+            const floor = window.innerHeight - candy.size;
+            if(candy.y > floor){
+                candy.y = floor;
+                candy.vy *= -bounceFactor;
+                candy.vx *= friction;
+
+                // Small rotation to simulate rolling
+                candy.el.style.transform = `rotate(${Math.random()*40-20}deg)`;
+            }
+
+            // Collision with other candies
+            candies.forEach(other => {
+                if(other !== candy){
+                    const dx = (candy.x + candy.size/2) - (other.x + other.size/2);
+                    const dy = (candy.y + candy.size/2) - (other.y + other.size/2);
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    if(dist < candy.size){
+                        // Simple push aside
+                        const overlap = candy.size - dist;
+                        const pushX = (dx/dist)*overlap*0.5;
+                        candy.x += pushX;
+                        candy.vx *= 0.9;
+                    }
+                }
+            });
+
+            candy.el.style.left = candy.x + 'px';
+            candy.el.style.top = candy.y + 'px';
+        });
+        requestAnimationFrame(animate);
+    }
+
+    requestAnimationFrame(animate);
+
+    document.addEventListener('click', e=>{
         e.preventDefault();
         e.stopPropagation();
-
         const el = e.target;
         const rect = el.getBoundingClientRect();
         el.remove();
-
-        const area = rect.width * rect.height;
-        const numSymbols = Math.max(1, Math.floor(area / 2000));
-
-        for(let i=0;i<numSymbols;i++){
-            const candy = document.createElement('div');
-            candy.textContent = symbols[Math.floor(Math.random()*symbols.length)];
-            candy.style.position = 'fixed';
-            candy.style.left = rect.left + Math.random()*rect.width + 'px';
-            candy.style.top = rect.top + Math.random()*rect.height + 'px';
-            candy.style.fontSize = '2em';
-            candy.style.transition = 'top 0.8s ease-in, transform 0.3s ease-out';
-            candy.style.zIndex = '9999';
-            document.body.appendChild(candy);
-
-            // Fall animation
-            setTimeout(() => {
-                // Compute the landing Y position
-                const candyHeight = candy.offsetHeight;
-                let bottomY = window.innerHeight - candyHeight - 5; // 5px margin from bottom
-
-                // Stack on top of previous candies
-                if(pile.length > 0){
-                    const last = pile[pile.length - 1];
-                    const lastRect = last.getBoundingClientRect();
-                    bottomY = Math.min(bottomY, lastRect.top - candyHeight);
-                }
-
-                candy.style.top = bottomY + 'px';
-                pile.push(candy); // Add to pile
-            }, 10);
-
-            // Bounce and roll
-            setTimeout(() => {
-                candy.style.transform = `translateY(-20px) rotate(${Math.random()*60-30}deg)`;
-                setTimeout(() => {
-                    candy.style.transform = 'translateY(0) rotate(0deg)';
-                    candy.style.transition = 'none'; // freeze animation so it stays
-                }, 300);
-            }, 900 + i*50);
+        const area = rect.width*rect.height;
+        const numCandies = Math.max(1, Math.floor(area/2000));
+        for(let i=0;i<numCandies;i++){
+            const spawnX = rect.left + Math.random()*rect.width;
+            const spawnY = rect.top + Math.random()*rect.height;
+            candies.push(createCandy(spawnX, spawnY, 32));
         }
     }, true);
 })();
